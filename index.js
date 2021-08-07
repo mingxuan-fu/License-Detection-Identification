@@ -37,7 +37,6 @@ async function processLicense(img)
         )
         let jimpedImg = await Jimp.read(croppedImg)
         let scaledImg = await jimpedImg.scaleToFit(1000, 2000).getBufferAsync(Jimp.MIME_JPEG)
-        let prepedImg = await jimpedImg.scaleToFit(1000, 2000).normalize().contrast(0.5).getBufferAsync(Jimp.MIME_JPEG)
         return [scaledImg, results.predictions[0]]
     }
 }
@@ -122,12 +121,17 @@ app.post('/detect-license', async function (req, res)
     let img = Buffer.from(String(req.body.image).split(',')[1], 'base64');
     fs.writeFileSync('test_send_img.jpg', img);
     let [croppedImg, location] = await processLicense(img);
-
-    let resBody = {
+    if (croppedImg) 
+    {
+        let resBody = {
         image: croppedImg.toString('base64'),
-        location: location
+        location: location,
+        status:'success'
+        }
+        res.json(resBody);
+    } else {
+        res.json({status:'failed'})
     }
-    res.json(resBody);
 })
 
 app.post('/identify-license', async function (req, res)
