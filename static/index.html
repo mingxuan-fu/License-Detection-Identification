@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <title>
+            License Plate Detection and Identification
+        </title>
+        <style>
+            img {
+                max-width: 30%;
+                height: auto;
+            }
+        </style>
+    </head>
+
+    <body>
+        <header>
+            <h1>License Plate Detection and Identification</h1>
+            <p>Created by Mingxuan Fu</p>
+        </header>
+        
+        <div>
+            <img id='userImg' class="img">
+            <div>
+                <input type="file" accept="image/*" id='imgIn' onchange="fileSelectHandle(event);">
+                <button onclick="sendImg()">Detect License</button>
+            </div>
+        </div>
+        
+        <div>
+            <img id='croppedImg' class="img">
+            <div>
+                <input type="text" id='numPlateInput'>
+                <button onclick="sendCropedImg()">Auto Identify</button>
+            </div>
+        </div>
+        
+    </body>
+    <script>
+        let imgFile = null; //workaround for difficulty converting between different b64 formats
+        let croppedImgFile = null;
+
+        const toBase64 = file => new Promise((resolve, reject) =>
+        {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result);
+            reader.onerror = error => reject(error);
+        });
+
+        function urltoFile(url, filename, mimeType)
+        {
+            return (fetch(url)
+                .then(function (res) {return res.arrayBuffer();})
+                .then(function (buf) {return new File([buf], filename, {type: mimeType});})
+            );
+        }
+
+
+        function fileSelectHandle(event)
+        {
+            if(event.target.files.length > 0)
+            {
+                let src = URL.createObjectURL(event.target.files[0]);
+                imgFile = event.target.files[0];
+                let preview = document.getElementById("userImg");
+                preview.src = src;
+                preview.style.display = "block";
+            }
+        }
+
+        async function sendImg()
+        {
+            if(imgFile != null)
+            {
+                let imgb64 = await toBase64(imgFile);
+                let response = await fetch('/detect-license', 
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type':'application/json'
+                        },
+                        body: JSON.stringify({image: imgb64})
+                    }
+                );
+
+                let data = await response.json();
+                let resultb64 = data.image;
+                croppedImgFile = await urltoFile('data:image/jpeg;base64,' + resultb64, 'a.jpg', 'image/jpeg')
+                let src = URL.createObjectURL(croppedImgFile);
+                let preview = document.getElementById("croppedImg");
+                preview.src = src;
+            }
+        }
+
+        async function sendCropedImg() {
+            let imgb64 = document.getElementById('croppedImg').src;
+            if(croppedImgFile != null)
+            {
+                let response = await fetch('/identify-license', 
+                    {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type':'application/json'
+                        },
+                        body: JSON.stringify({image: await toBase64(croppedImgFile)})
+                    }
+                );
+                let numPlateInput = document.getElementById('numPlateInput');
+                let data = await response.json()
+                if (data.status === 'success') {
+                    let result = data.prediction;
+                    console.log(data.prediction);
+                    numPlateInput.value=result;
+                } else {
+                    numPlateInput.value='Auto Identification failed'
+                }
+                
+            }
+        }
+    </script>
+
+</html>

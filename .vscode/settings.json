@@ -1,0 +1,4 @@
+{
+    "appService.defaultWebAppToDeploy": "/subscriptions/b30772ec-ccb6-47f9-8c7a-3a265a746c54/resourceGroups/appsvc_linux_centralus/providers/Microsoft.Web/sites/license-plate-read-msa",
+    "appService.deploySubpath": "."
+}

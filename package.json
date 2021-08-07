@@ -1,0 +1,21 @@
+{
+  "name": "msa_license_project",
+  "version": "1.0.0",
+  "description": "end to end solution for detecting license plates and read them",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@azure/cognitiveservices-customvision-prediction": "^5.1.2",
+    "@azure/cognitiveservices-customvision-training": "^5.2.0",
+    "axios": "^0.21.1",
+    "express": "^4.17.1",
+    "form-data": "^4.0.0",
+    "image-size": "^1.0.0",
+    "jimp": "^0.16.1",
+    "sharp": "^0.28.3"
+  }
+}
