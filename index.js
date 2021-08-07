@@ -25,15 +25,16 @@ const client = new PredictionAPIClient(credentials, customVisionPredictionEndPoi
 async function processLicense(img)
 {
     results = await predictLicense(img)
-    if (results.predictions.length > 0) {
+    if(results.predictions.length > 0)
+    {
         cropBox = results.predictions[0].boundingBox
         let croppedImg = await cropImageRatio(
-            cropBox.left - cropBox.width * 0.25, 
-            cropBox.top + cropBox.height * 0.15, 
-            cropBox.width + cropBox.width * 0.5, 
+            cropBox.left - cropBox.width * 0.25,
+            cropBox.top + cropBox.height * 0.15,
+            cropBox.width + cropBox.width * 0.5,
             cropBox.height - cropBox.height * 0.3,
             img
-            )
+        )
         let jimpedImg = await Jimp.read(croppedImg)
         let scaledImg = await jimpedImg.scaleToFit(1000, 2000).getBufferAsync(Jimp.MIME_JPEG)
         let prepedImg = await jimpedImg.scaleToFit(1000, 2000).normalize().contrast(0.5).getBufferAsync(Jimp.MIME_JPEG)
@@ -41,7 +42,8 @@ async function processLicense(img)
     }
 }
 
-async function predictLicense(img) {
+async function predictLicense(img)
+{
     let jimpedImg = await Jimp.read(img)
     let scaledImg = await jimpedImg.scaleToFit(2000, 1000).getBufferAsync(Jimp.MIME_JPEG)
     const results = await client.detectImage(projectId, iterationName, scaledImg);
@@ -63,44 +65,47 @@ async function readLicenseUsingMSOCR(img)
     };
 
     return new Promise((resolve, reject) =>
+    {
+        var req = https.request(options, function (res)
         {
-            var req = https.request(options, function (res)
+            var chunks = [];
+
+            res.on("data", function (chunk)
             {
-                var chunks = [];
-
-                res.on("data", function (chunk)
-                {
-                    chunks.push(chunk);
-                });
-
-                res.on("end", function (chunk)
-                {
-                    var body = JSON.parse(Buffer.concat(chunks));
-                    if (body.regions.length > 0) {
-                        let finalStr = body.regions[0].lines[0].words.reduce((finalStr, word) => finalStr+word.text, '')
-                        resolve({status: 'success', prediction:finalStr})
-                    }
-                    else {
-                        resolve(null)
-                    }
-                });
-
-                res.on("error", function (error)
-                {
-                    console.error(error);
-                });
+                chunks.push(chunk);
             });
 
-            var postData = img;
+            res.on("end", function (chunk)
+            {
+                var body = JSON.parse(Buffer.concat(chunks));
+                if(body.regions.length > 0)
+                {
+                    let finalStr = body.regions[0].lines[0].words.reduce((finalStr, word) => finalStr + word.text, '')
+                    resolve({status: 'success', prediction: finalStr})
+                }
+                else
+                {
+                    resolve(null)
+                }
+            });
 
-            req.write(postData);
+            res.on("error", function (error)
+            {
+                console.error(error);
+            });
+        });
 
-            req.end();
-        }
+        var postData = img;
+
+        req.write(postData);
+
+        req.end();
+    }
     )
 }
 
-async function cropImageRatio(left, top, width, height, img) {
+async function cropImageRatio(left, top, width, height, img)
+{
     let pixSize = sizeOfImg(img);
     let cropRegion = {
         left: Math.max(Math.round(left * pixSize.width), 0),
@@ -112,11 +117,12 @@ async function cropImageRatio(left, top, width, height, img) {
     return cropped
 }
 
-app.post('/detect-license', async function (req, res){
+app.post('/detect-license', async function (req, res)
+{
     let img = Buffer.from(String(req.body.image).split(',')[1], 'base64');
     fs.writeFileSync('test_send_img.jpg', img);
     let [croppedImg, location] = await processLicense(img);
-    
+
     let resBody = {
         image: croppedImg.toString('base64'),
         location: location
@@ -124,18 +130,22 @@ app.post('/detect-license', async function (req, res){
     res.json(resBody);
 })
 
-app.post('/identify-license', async function(req, res) {
+app.post('/identify-license', async function (req, res)
+{
     let img = Buffer.from(String(req.body.image).split(',')[1], 'base64');
     let result = await readLicenseUsingMSOCR(img);
-    if (result != null) {
+    if(result != null)
+    {
         res.json(result)
-    } else {
-        res.json({status:'failed'})
+    } else
+    {
+        res.json({status: 'failed'})
     }
     fs.writeFileSync('test_send_img_cropped.jpg', img);
 })
 
-app.get('/', (req, res) => {
+app.get('/', (req, res) =>
+{
     res.sendFile(path.join(__dirname, '/static/index.html'));
 })
 

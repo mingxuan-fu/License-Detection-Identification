@@ -18,7 +18,7 @@
             <h1>License Plate Detection and Identification</h1>
             <p>Created by Mingxuan Fu</p>
         </header>
-        
+
         <div>
             <img id='userImg' class="img">
             <div>
@@ -26,7 +26,7 @@
                 <button onclick="sendImg()">Detect License</button>
             </div>
         </div>
-        
+
         <div>
             <img id='croppedImg' class="img">
             <div>
@@ -34,7 +34,7 @@
                 <button onclick="sendCropedImg()">Auto Identify</button>
             </div>
         </div>
-        
+
     </body>
     <script>
         let imgFile = null; //workaround for difficulty converting between different b64 formats
@@ -74,11 +74,11 @@
             if(imgFile != null)
             {
                 let imgb64 = await toBase64(imgFile);
-                let response = await fetch('/detect-license', 
+                let response = await fetch('/detect-license',
                     {
                         method: 'POST',
                         headers: {
-                            'Content-Type':'application/json'
+                            'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({image: imgb64})
                     }
@@ -93,29 +93,32 @@
             }
         }
 
-        async function sendCropedImg() {
+        async function sendCropedImg()
+        {
             let imgb64 = document.getElementById('croppedImg').src;
             if(croppedImgFile != null)
             {
-                let response = await fetch('/identify-license', 
+                let response = await fetch('/identify-license',
                     {
                         method: 'POST',
                         headers: {
-                            'Content-Type':'application/json'
+                            'Content-Type': 'application/json'
                         },
                         body: JSON.stringify({image: await toBase64(croppedImgFile)})
                     }
                 );
                 let numPlateInput = document.getElementById('numPlateInput');
                 let data = await response.json()
-                if (data.status === 'success') {
+                if(data.status === 'success')
+                {
                     let result = data.prediction;
                     console.log(data.prediction);
-                    numPlateInput.value=result;
-                } else {
-                    numPlateInput.value='Auto Identification failed'
+                    numPlateInput.value = result;
+                } else
+                {
+                    numPlateInput.value = 'Auto Identification failed'
                 }
-                
+
             }
         }
     </script>
