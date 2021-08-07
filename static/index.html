@@ -40,6 +40,7 @@
         let imgFile = null; //workaround for difficulty converting between different b64 formats
         let croppedImgFile = null;
 
+        //converts files to base64 
         const toBase64 = file => new Promise((resolve, reject) =>
         {
             const reader = new FileReader();
@@ -48,6 +49,7 @@
             reader.onerror = error => reject(error);
         });
 
+        //converts a url encoded file to file object
         function urltoFile(url, filename, mimeType)
         {
             return (fetch(url)
@@ -55,7 +57,6 @@
                 .then(function (buf) {return new File([buf], filename, {type: mimeType});})
             );
         }
-
 
         function fileSelectHandle(event)
         {

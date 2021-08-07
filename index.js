@@ -6,14 +6,17 @@ const sizeOfImg = require('image-size');
 const Jimp = require('jimp');
 const express = require('express');
 const path = require('path')
-let https = require('follow-redirects').https;
+const https = require('follow-redirects').https;
 
+//create the app
 const app = express();
 const port = 8080;
 app.use(express.json({limit: '50mb'}));
 
+//read the file that contains the api keys.
 let apiKeys = JSON.parse(fs.readFileSync('credentials.json'));
 
+//set up ms custom vision credentials
 const customVisionPredictionKey = apiKeys.customVisionPredictionKey;
 const customVisionPredictionEndPoint = "https://computervisionmsal-prediction.cognitiveservices.azure.com";
 const projectId = "79bd5e32-17fd-46cd-a16a-3357a1dd09ad";
@@ -24,6 +27,7 @@ const client = new PredictionAPIClient(credentials, customVisionPredictionEndPoi
 
 async function processLicense(img)
 {
+    //takes in a img buffer and returns a cropped image of the image to only the bit that contains the license
     results = await predictLicense(img)
     if(results.predictions.length > 0)
     {
@@ -43,6 +47,7 @@ async function processLicense(img)
 
 async function predictLicense(img)
 {
+    //takes a img buffer and send it to azure custom vision to detect if it contains license plates.
     let jimpedImg = await Jimp.read(img)
     let scaledImg = await jimpedImg.scaleToFit(2000, 1000).getBufferAsync(Jimp.MIME_JPEG)
     const results = await client.detectImage(projectId, iterationName, scaledImg);
@@ -51,7 +56,7 @@ async function predictLicense(img)
 
 async function readLicenseUsingMSOCR(img)
 {
-
+    //takes img buffer and attempt to read it using ms computer vision, returns a concatnated version of the first line of the result
     var options = {
         'method': 'POST',
         'hostname': 'australiaeast.api.cognitive.microsoft.com',
@@ -105,9 +110,10 @@ async function readLicenseUsingMSOCR(img)
 
 async function cropImageRatio(left, top, width, height, img)
 {
+    //crops images based on ratios instead of strict pixels
     let pixSize = sizeOfImg(img);
     let cropRegion = {
-        left: Math.max(Math.round(left * pixSize.width), 0),
+        left: Math.max(Math.round(left * pixSize.width), 0), //increase crop size, workaround for cases where the model return a selection too small
         top: Math.max(Math.round(top * pixSize.height), 0),
         width: Math.min(Math.round(width * pixSize.width), pixSize.width - Math.max(Math.round(left * pixSize.width), 0)),
         height: Math.min(Math.round(height * pixSize.height), pixSize.height - Math.max(Math.round(top * pixSize.height), 0))
@@ -118,6 +124,7 @@ async function cropImageRatio(left, top, width, height, img)
 
 app.post('/detect-license', async function (req, res)
 {
+    //takes in image from client and look for license plate, returns cropped license plate
     let img = Buffer.from(String(req.body.image).split(',')[1], 'base64');
     fs.writeFileSync('test_send_img.jpg', img);
     let [croppedImg, location] = await processLicense(img);
@@ -136,6 +143,7 @@ app.post('/detect-license', async function (req, res)
 
 app.post('/identify-license', async function (req, res)
 {
+    //takes in client image and attempt to read it
     let img = Buffer.from(String(req.body.image).split(',')[1], 'base64');
     let result = await readLicenseUsingMSOCR(img);
     if(result != null)
