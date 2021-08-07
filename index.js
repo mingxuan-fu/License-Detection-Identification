@@ -15,9 +15,9 @@ app.use(express.json({limit: '50mb'}));
 let apiKeys = JSON.parse(fs.readFileSync('credentials.json'));
 
 const customVisionPredictionKey = apiKeys.customVisionPredictionKey;
-const customVisionPredictionEndPoint = apiKeys.customVisionPredictionEndPoint;
-const projectId = apiKeys.projectId;
-const iterationName = apiKeys.iterationName
+const customVisionPredictionEndPoint = "https://computervisionmsal-prediction.cognitiveservices.azure.com";
+const projectId = "79bd5e32-17fd-46cd-a16a-3357a1dd09ad";
+const iterationName = "license-predict"
 
 const credentials = new ApiKeyCredentials({inHeader: {"Prediction-key": customVisionPredictionKey}});
 const client = new PredictionAPIClient(credentials, customVisionPredictionEndPoint);

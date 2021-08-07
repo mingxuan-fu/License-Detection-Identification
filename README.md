@@ -16,6 +16,18 @@ The application consists of three main components, all of which exists on Micros
 
 * A Azure App Service Resource which hosts a Node.js server that coordinates communication between the client and the other two resources, which also provides a web interface to interact with the application.
 
+## Deployment
+
+1. download and install npm, node.js
+
+2. download repository
+
+3. extract repository into a folder and execute `npm install`
+
+4. A 'credentials.json' file must be present within the folder that contains 'customVisionPredictionKey' and 'OCRkey', each containing the API key for the Azure Custom Vision and Azure Computer Vision resource used in this project.
+
+5. execute `node index.js` or deploy this folder to a Azure App Service cloud service.
+
 ## API
 
 This project contains 2 APIs
